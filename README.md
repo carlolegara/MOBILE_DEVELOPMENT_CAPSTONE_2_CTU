@@ -1,6 +1,6 @@
 # parkbai
 
-A new Flutter project.
+ParkBai aims to develop an automated parking management system for parking lot owners within Cebu City, Philippines.
 
 ## Getting Started
 
