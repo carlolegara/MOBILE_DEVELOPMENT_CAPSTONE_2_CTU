@@ -3,11 +3,11 @@ import 'package:parkbai/loginpage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:google_fonts/google_fonts.dart';
-//import 'package:parkbai/parkingslot.dart';
+import 'package:parkbai/parkingslot.dart';
 import 'dart:math';
 import 'package:geolocator/geolocator.dart';
-//import 'package:parkbai/map.dart';
-//import 'package:parkbai/paymentpage.dart';
+import 'package:parkbai/map.dart';
+import 'package:parkbai/paymentpage.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -467,21 +467,21 @@ class _HomePageState extends State<HomePage> {
                                                           GestureDetector(
                                                             onTap: () {
                                                               _fetchCurrentLocation();
-                                                              //Navigator.push(
-                                                              //    context,
-                                                              //    MaterialPageRoute(
-                                                              //      builder:
-                                                              //          (context) =>
-                                                              //             MapGuide(
-                                                              //        lotlatitude:
-                                                              //            lot[index]
-                                                              //                .latitude,
-                                                              //        lotlongitude:
-                                                              //            lot[index]
-                                                              //                .longitude,
-                                                              //      ),
-                                                              //    ),
-                                                              //  );
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          MapGuide(
+                                                                    lotlatitude:
+                                                                        lot[index]
+                                                                            .latitude,
+                                                                    lotlongitude:
+                                                                        lot[index]
+                                                                            .longitude,
+                                                                  ),
+                                                                ),
+                                                              );
                                                             },
                                                             child: Icon(
                                                               Icons.location_on,
@@ -494,19 +494,19 @@ class _HomePageState extends State<HomePage> {
                                                     ],
                                                   ),
                                                   onTap: () {
-                                                    //Navigator.push(
-                                                    //  context,
-                                                    //  MaterialPageRoute(
-                                                    //    builder: (context) =>
-                                                    //        ParkingSlot(
-                                                    //     parkingKey:
-                                                    //          lot[index].key,
-                                                    //      parkingLayout: lot[
-                                                    //              index]
-                                                    //          .parkingLot_layout,
-                                                    //    ),
-                                                    //  ),
-                                                    //);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            ParkingSlot(
+                                                          parkingKey:
+                                                              lot[index].key,
+                                                          parkingLayout: lot[
+                                                                  index]
+                                                              .parkingLot_layout,
+                                                        ),
+                                                      ),
+                                                    );
                                                   },
                                                 ),
                                               ),
@@ -597,21 +597,21 @@ class _HomePageState extends State<HomePage> {
                                                           GestureDetector(
                                                             onTap: () {
                                                               _fetchCurrentLocation();
-                                                              // Navigator.push(
-                                                              //   context,
-                                                              //   MaterialPageRoute(
-                                                              //     builder:
-                                                              //         (context) =>
-                                                              //             MapGuide(
-                                                              //       lotlatitude:
-                                                              //           lot[index]
-                                                              //               .latitude,
-                                                              //       lotlongitude:
-                                                              //           lot[index]
-                                                              //               .longitude,
-                                                              //     ),
-                                                              //   ),
-                                                              // );
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          MapGuide(
+                                                                    lotlatitude:
+                                                                        lot[index]
+                                                                            .latitude,
+                                                                    lotlongitude:
+                                                                        lot[index]
+                                                                            .longitude,
+                                                                  ),
+                                                                ),
+                                                              );
                                                             },
                                                             child: Icon(
                                                               Icons.location_on,
@@ -624,19 +624,19 @@ class _HomePageState extends State<HomePage> {
                                                     ],
                                                   ),
                                                   onTap: () {
-                                                    // Navigator.push(
-                                                    //   context,
-                                                    //   MaterialPageRoute(
-                                                    //     builder: (context) =>
-                                                    //         ParkingSlot(
-                                                    //       parkingKey:
-                                                    //           lot[index].key,
-                                                    //       parkingLayout: lot[
-                                                    //               index]
-                                                    //           .parkingLot_layout, // Replace with your actual longitude property
-                                                    //     ),
-                                                    //   ),
-                                                    // );
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            ParkingSlot(
+                                                          parkingKey:
+                                                              lot[index].key,
+                                                          parkingLayout: lot[
+                                                                  index]
+                                                              .parkingLot_layout, // Replace with your actual longitude property
+                                                        ),
+                                                      ),
+                                                    );
                                                   },
                                                 ),
                                               ),
@@ -764,11 +764,11 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         ),
                                         onTap: () {
-                                          // Navigator.push(
-                                          //   context,
-                                          //   goingLeftPageRoute(
-                                          //       nextPage: PaymentPage()),
-                                          // );
+                                          Navigator.push(
+                                            context,
+                                            goingLeftPageRoute(
+                                                nextPage: PaymentPage()),
+                                          );
                                         },
                                       ),
                                     ],
