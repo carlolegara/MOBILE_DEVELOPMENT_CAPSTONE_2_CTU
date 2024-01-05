@@ -4,9 +4,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:parkbai/loginpage.dart';
 import 'package:parkbai/onboarding_screen.dart';
-// import 'package:parkbai/vehicle.dart';
+import 'package:parkbai/vehicle.dart';
 // import 'package:parkbai/vehicleinfo.dart';
-// import 'package:parkbai/accountsetting.dart';
+import 'package:parkbai/accountsetting.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -492,13 +492,13 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                         onTap: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => accountSetting(),
-                          //   ),
-                          // );
-                          // print("ma edit sha");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => accountSetting(),
+                            ),
+                          );
+                          print("ma edit sha");
                         },
                       ),
                       Padding(
@@ -519,11 +519,11 @@ class _ProfilePageState extends State<ProfilePage> {
                               color: Color(0xFFE2C946),
                               iconSize: 23, // Choose the icon you want
                               onPressed: () {
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //       builder: (context) => const AddVehicle()),
-                                // );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const AddVehicle()),
+                                );
                               },
                             ),
                           ],

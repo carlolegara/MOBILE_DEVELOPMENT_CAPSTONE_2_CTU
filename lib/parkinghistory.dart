@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:parkbai/paymenthistory.dart';
 import 'package:parkbai/main.dart';
-// import 'package:parkbai/parkinghistoryinfo.dart';
+import 'package:parkbai/parkinghistoryinfo.dart';
 
 class ParkingHistory extends StatefulWidget {
   const ParkingHistory({super.key});
@@ -385,16 +385,16 @@ class _ParkingHistoryState extends State<ParkingHistory> {
                                       },
                                     ),
                                     onTap: () {
-                                      // Navigator.push(
-                                      //   context,
-                                      //   goingTopPageRoute(
-                                      //     nextPage: ParkingHistoryInfo(
-                                      //       ParkingHistoryKey: items[index].key,
-                                      //       ownerHistoryKey:
-                                      //           items[index].ownerID,
-                                      //     ),
-                                      //   ),
-                                      // );
+                                      Navigator.push(
+                                        context,
+                                        goingTopPageRoute(
+                                          nextPage: ParkingHistoryInfo(
+                                            ParkingHistoryKey: items[index].key,
+                                            ownerHistoryKey:
+                                                items[index].ownerID,
+                                          ),
+                                        ),
+                                      );
                                     },
                                   ),
                                 ),
