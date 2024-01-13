@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-//import 'package:parkbai/homepage1.dart';
+import 'package:parkbai/homepage1.dart';
 import 'package:parkbai/onboarding_screen.dart';
-//import 'package:parkbai/profile.dart';
-//import 'package:parkbai/parkinghistory.dart';
-//import 'package:parkbai/helpcenter.dart';
+import 'package:parkbai/profile.dart';
+import 'package:parkbai/parkinghistory.dart';
+import 'package:parkbai/helpcenter.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -80,10 +80,10 @@ class goingLeftPageRoute extends PageRouteBuilder {
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
   static List<Widget> _widgetOptions = <Widget>[
-    //HomePage(),
-    //ProfilePage(),
-    //ParkingHistory(),
-    //HelpCenterPage(),
+    HomePage(),
+    ProfilePage(),
+    ParkingHistory(),
+    HelpCenterPage(),
   ];
 
   @override

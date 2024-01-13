@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:parkbai/loginpage.dart';
 import 'package:parkbai/onboarding_screen.dart';
 import 'package:parkbai/vehicle.dart';
-// import 'package:parkbai/vehicleinfo.dart';
+import 'package:parkbai/vehicleinfo.dart';
 import 'package:parkbai/accountsetting.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -617,16 +617,16 @@ class _ProfilePageState extends State<ProfilePage> {
                                                 ),
                                               ),
                                               onTap: () {
-                                                // Navigator.push(
-                                                //   context,
-                                                //   MaterialPageRoute(
-                                                //     builder: (context) =>
-                                                //         VehicleInfo(
-                                                //       vehicleKey:
-                                                //           vehicles[index].key,
-                                                //     ),
-                                                //   ),
-                                                // );
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        VehicleInfo(
+                                                      vehicleKey:
+                                                          vehicles[index].key,
+                                                    ),
+                                                  ),
+                                                );
                                               },
                                             ),
                                           ),
