@@ -75,23 +75,31 @@ class AddVehicleState extends State<AddVehicle> {
 
     if (image == null) return;
 
+    // Check if the selected file has a specific extension (e.g., jpg or png)
+    List<String> allowedExtensions = ['jpg', 'jpeg', 'png'];
+    String fileExtension = image.path.split('.').last.toLowerCase();
+
+    if (!allowedExtensions.contains(fileExtension)) {
+      // Display an error message or handle the case where the selected file has an invalid extension
+      print('Invalid file extension. Please select a valid image file.');
+      return;
+    }
+
     String VehicleimageName = DateTime.now().millisecondsSinceEpoch.toString();
+    String fileType = 'image';
 
     Reference ref = FirebaseStorage.instance
         .ref()
         .child("DRIVER")
         .child("VEHICLE")
-        .child(VehicleimageName);
-
-    // Extract file extension from the image path
-    String fileExtension = image.path.split('.').last.toLowerCase();
+        .child('$VehicleimageName.$fileExtension');
 
     // Specify custom metadata with dynamically determined file type
     SettableMetadata metadata = SettableMetadata(
       contentType:
           'image/$fileExtension', // Set the content type based on the file extension
       customMetadata: {
-        'fileType': 'image',
+        'fileType': fileType,
         'extension': fileExtension
       }, // You can add more metadata as needed
     );
@@ -103,11 +111,11 @@ class AddVehicleState extends State<AddVehicle> {
       // Get the download URL
       await ref.getDownloadURL().then((value) {
         setState(() {
-          vehicleImage = value; // or vehicleDocument
+          vehicleImage = value;
         });
       });
     } catch (error) {
-      print("Error uploading image: $error");
+      print("Error uploading vehicle image: $error");
       // Handle the error as needed
     }
   }
@@ -119,25 +127,33 @@ class AddVehicleState extends State<AddVehicle> {
 
     if (image == null) return;
 
+    // Check if the selected file has a specific extension (e.g., jpg or png)
+    List<String> allowedExtensions = ['jpg', 'jpeg', 'png'];
+    String fileExtension = image.path.split('.').last.toLowerCase();
+
+    if (!allowedExtensions.contains(fileExtension)) {
+      // Display an error message or handle the case where the selected file has an invalid extension
+      print('Invalid file extension. Please select a valid image file.');
+      return;
+    }
+
     String vehicleDocumentname =
         DateTime.now().millisecondsSinceEpoch.toString();
+    String fileType = 'image';
 
     Reference ref = FirebaseStorage.instance
         .ref()
         .child("DRIVER")
         .child("VEHICLE")
         .child("DOCUMENTS")
-        .child(vehicleDocumentname);
-
-    // Extract file extension from the image path
-    String fileExtension = image.path.split('.').last.toLowerCase();
+        .child('$vehicleDocumentname.$fileExtension');
 
     // Specify custom metadata with dynamically determined file type
     SettableMetadata metadata = SettableMetadata(
       contentType:
           'image/$fileExtension', // Set the content type based on the file extension
       customMetadata: {
-        'fileType': 'image',
+        'fileType': fileType,
         'extension': fileExtension
       }, // You can add more metadata as needed
     );
@@ -149,11 +165,11 @@ class AddVehicleState extends State<AddVehicle> {
       // Get the download URL
       await ref.getDownloadURL().then((value) {
         setState(() {
-          vehicleDocument = value; // or vehicleDocument
+          vehicleDocument = value;
         });
       });
     } catch (error) {
-      print("Error uploading image: $error");
+      print("Error uploading vehicle document: $error");
       // Handle the error as needed
     }
   }

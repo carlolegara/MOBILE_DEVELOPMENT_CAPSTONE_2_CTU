@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:parkbai/accountsetting.dart';
 import 'package:parkbai/loginpage.dart';
 import 'package:parkbai/main.dart';
 import 'dart:io';
@@ -35,6 +36,7 @@ final address = TextEditingController();
 final email = TextEditingController();
 final password = TextEditingController();
 final conpassword = TextEditingController();
+final licensenumber = TextEditingController();
 
 //REDIRECT TO MAIN PAGE
 // ignore: non_constant_identifier_names
@@ -73,6 +75,7 @@ void clearInput() {
   email.clear();
   password.clear();
   conpassword.clear();
+  licensenumber.clear();
 }
 
 //SHOWS POP UP MESSAGE AFTER CREATE ACCOUNT
@@ -130,6 +133,7 @@ Future signUp(BuildContext context) async {
         'lastname': lastname.text.toLowerCase(),
         'address': address.text.toLowerCase(),
         'phonenumber': phonenumber.text,
+        'license': licensenumber.text,
         'email': email.text.toLowerCase(),
         'password': password.text.toLowerCase(),
         'balance': 0,
@@ -203,6 +207,7 @@ class _MyAppState extends State<CreateAccount> {
   String errortextemail = '';
   String errortextpass = '';
   String errortextconpass = '';
+  String errortextdriver = '';
 
   //METHOD FOR UPLOADING IMAGE TO FIREBASE STORAGE
 // ignore: non_constant_identifier_names
@@ -214,20 +219,30 @@ class _MyAppState extends State<CreateAccount> {
 
     if (image == null) return; // User canceled image selection
 
-    String imageName = DateTime.now().millisecondsSinceEpoch.toString();
-
-    Reference ref =
-        FirebaseStorage.instance.ref().child("DRIVER").child(imageName);
-
-    // Extract file extension from the image path
+    // Check if the selected file has a specific extension (e.g., jpg or png)
+    List<String> allowedExtensions = ['jpg', 'jpeg', 'png'];
     String fileExtension = image.path.split('.').last.toLowerCase();
+
+    if (!allowedExtensions.contains(fileExtension)) {
+      // Display an error message or handle the case where the selected file has an invalid extension
+      print('Invalid file extension. Please select a valid image file.');
+      return;
+    }
+
+    String imageName = DateTime.now().millisecondsSinceEpoch.toString();
+    String fileType = 'image';
+
+    Reference ref = FirebaseStorage.instance
+        .ref()
+        .child("DRIVER")
+        .child('$imageName.$fileExtension');
 
     // Specify custom metadata with dynamically determined file type
     SettableMetadata metadata = SettableMetadata(
       contentType:
           'image/$fileExtension', // Set the content type based on the file extension
       customMetadata: {
-        'fileType': 'image',
+        'fileType': fileType,
         'extension': fileExtension
       }, // You can add more metadata as needed
     );
@@ -237,7 +252,6 @@ class _MyAppState extends State<CreateAccount> {
 
     // Get the download URL
     await ref.getDownloadURL().then((value) {
-      //print(value);
       setState(() {
         imageUrl = value;
       });
@@ -251,34 +265,49 @@ class _MyAppState extends State<CreateAccount> {
 
     if (imageDL == null) return; // User canceled image selection
 
-    String imageName = DateTime.now().millisecondsSinceEpoch.toString();
-
-    Reference ref =
-        FirebaseStorage.instance.ref().child("DRIVER").child(imageName);
-
-    // Extract file extension from the image path
+    // Check if the selected file has a specific extension (e.g., jpg or png)
+    List<String> allowedExtensions = ['jpg', 'jpeg', 'png'];
     String fileExtension = imageDL.path.split('.').last.toLowerCase();
+
+    if (!allowedExtensions.contains(fileExtension)) {
+      // Display an error message or handle the case where the selected file has an invalid extension
+      print('Invalid file extension. Please select a valid image file.');
+      return;
+    }
+
+    String imageName = DateTime.now().millisecondsSinceEpoch.toString();
+    String fileType = 'image';
+
+    Reference ref = FirebaseStorage.instance
+        .ref()
+        .child("DRIVER")
+        .child('$imageName.$fileExtension');
 
     // Specify custom metadata with dynamically determined file type
     SettableMetadata metadata = SettableMetadata(
       contentType:
           'image/$fileExtension', // Set the content type based on the file extension
       customMetadata: {
-        'fileType': 'image',
-        'extension': fileExtension
+        'fileType': fileType,
+        'extension': fileExtension,
       }, // You can add more metadata as needed
     );
 
     // Upload the file with custom metadata
-    await ref.putFile(File(imageDL.path), metadata);
+    try {
+      // Upload the file with custom metadata
+      await ref.putFile(File(imageDL.path), metadata);
 
-    // Get the download URL
-    await ref.getDownloadURL().then((value) {
-      //print(value);
-      setState(() {
-        imageDLUrl = value;
+      // Get the download URL
+      await ref.getDownloadURL().then((value) {
+        setState(() {
+          reUploadimageUrl = value;
+        });
       });
-    });
+    } catch (error) {
+      print("Error uploading vehicle image: $error");
+      // Handle the error as needed
+    }
   }
 
   @override
@@ -653,6 +682,64 @@ class _MyAppState extends State<CreateAccount> {
                                           BorderSide(color: Colors.white)),
                                 ),
                                 style: const TextStyle(
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 370,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 15),
+                              child: TextField(
+                                controller: licensenumber,
+                                maxLength: 16,
+                                onChanged: (value) {
+                                  // Validation logic for driver's license
+                                  setState(() {
+                                    // Assuming alphanumeric includes letters (a-z, A-Z) and numbers (0-9)
+                                    RegExp alphanumeric =
+                                        RegExp(r'^[a-zA-Z0-9]+$');
+
+                                    if (value.isEmpty) {
+                                      // Handle empty input
+                                      errortextdriver =
+                                          "Driver's license is required.";
+                                    } else if (value.length != 16) {
+                                      // Check length
+                                      errortextdriver =
+                                          "Driver's license should be 16 characters.";
+                                    } else if (!alphanumeric.hasMatch(value)) {
+                                      // Check alphanumeric
+                                      errortextdriver =
+                                          "Invalid characters detected.";
+                                    } else {
+                                      // No errors
+                                      errortextdriver = "";
+                                    }
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  counterText: "",
+                                  errorText: errortextdriver.isEmpty
+                                      ? null
+                                      : errortextdriver,
+                                  prefixIcon: Icon(Icons.drive_eta_outlined,
+                                      color: Colors.blue),
+                                  isDense: true,
+                                  labelText: 'Driver\'s License',
+                                  hintText: 'Enter 16 characters',
+                                  labelStyle: TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: "Raleway",
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(15)),
+                                    borderSide: BorderSide(color: Colors.white),
+                                  ),
+                                ),
+                                style: TextStyle(
                                   color: Colors.black,
                                 ),
                               ),

@@ -2,12 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:parkbai/loginpage.dart';
 import 'package:parkbai/onboarding_screen.dart';
 import 'package:parkbai/vehicle.dart';
 import 'package:parkbai/vehicleinfo.dart';
 import 'package:parkbai/accountsetting.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:math';
 
 class ProfilePage extends StatefulWidget {
   ProfilePage({Key? key}) : super(key: key);
@@ -54,6 +55,48 @@ int hexColor(String color) {
   return finalColor;
 }
 
+// Function to display SnackBar
+void showSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 3),
+      backgroundColor: Color(hexColor('#003459')),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(8.0),
+          topRight: Radius.circular(8.0),
+        ),
+      ),
+    ),
+  );
+}
+
+class goingTopPageRoute extends PageRouteBuilder {
+  final Widget nextPage;
+
+  goingTopPageRoute({required this.nextPage})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) => nextPage,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0); // Slide from bottom
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+
+            var offsetAnimation = animation.drive(tween);
+
+            return SlideTransition(
+              position: offsetAnimation,
+              child: child,
+            );
+          },
+        );
+}
+
 class Vehicle {
   final String key;
   final String brand;
@@ -64,11 +107,14 @@ class Vehicle {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  DatabaseReference? DriverDataref;
   DatabaseReference? userRef;
   Stream? userDataStream;
 
   DatabaseReference? VehicleRef;
   Stream? VehicleDataStream;
+
+  DatabaseReference? driverToAdminref;
 
   @override
   void initState() {
@@ -108,13 +154,12 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      transitionDuration: Duration(milliseconds: 250),
+      transitionDuration: Duration(milliseconds: 10),
       pageBuilder: (context, animation1, animation2) {
         return Container();
       },
       transitionBuilder: (context, a1, a2, widget) {
         double screenWidth = MediaQuery.of(context).size.width;
-        double screenHeight = MediaQuery.of(context).size.height;
 
         return ScaleTransition(
           scale: Tween<double>(begin: 0.5, end: 1.0).animate(a1),
@@ -131,15 +176,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     Text(
                       "Do you want to sign out?",
                       style: GoogleFonts.raleway(
-                        fontSize: screenWidth * 0.04, // Adjusted font size
+                        fontSize: 17, // Adjusted font size
                         color: Color(0xFFE4F4FF),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(width: screenWidth * 0.1), // Adjusted padding
+                        SizedBox(width: 3), // Adjusted padding
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pop();
@@ -147,8 +192,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Text(
                             "Cancel",
                             style: GoogleFonts.raleway(
-                              fontSize:
-                                  screenWidth * 0.035, // Adjusted font size
+                              fontSize: 15, // Adjusted font size
                               color: Color(0xFFE2C946),
                               fontWeight: FontWeight.bold,
                             ),
@@ -164,16 +208,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               userDataStream = null;
                               userRef = null;
                             });
-                            Fluttertoast.showToast(
-                              msg: "Successfully signed out",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              timeInSecForIosWeb: 5,
-                              backgroundColor: Color(hexColor('#003459')),
-                              textColor: Colors.white,
-                              fontSize:
-                                  screenWidth * 0.04, // Adjusted font size
-                            );
+                            showSnackBar(context, "Successfully signed out.");
                             // Redirect to the OnBoardingScreen
                             Navigator.pushAndRemoveUntil(
                               context,
@@ -186,8 +221,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Text(
                             "Yes",
                             style: GoogleFonts.raleway(
-                              fontSize:
-                                  screenWidth * 0.035, // Adjusted font size
+                              fontSize: 15, // Adjusted font size
                               color: Color(0xFFE2C946),
                               fontWeight: FontWeight.bold,
                             ),
@@ -203,6 +237,173 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       },
     );
+  }
+
+  void RFIDrequest(BuildContext context) async {
+    final User? DriverData = FirebaseAuth.instance.currentUser;
+    if (DriverData != null) {
+      DriverDataref = FirebaseDatabase.instance
+          .ref()
+          .child('DRIVER')
+          .child(DriverData.uid)
+          .child('ACCOUNT');
+
+      DatabaseEvent event = await DriverDataref!.once();
+      if (event.snapshot.value is Map<dynamic, dynamic>) {
+        Map<dynamic, dynamic>? data =
+            event.snapshot.value as Map<dynamic, dynamic>?;
+        if (data != null && data['license'] != null) {
+          String fname = data['firstname'].toString();
+          String mname = data['middlename'].toString();
+          String lname = data['lastname'].toString();
+          String email = data['email'].toString();
+          // String address = data['address'].toString();
+          double balance = double.parse(data['balance'].toString());
+          print('Current Balance: $balance');
+
+          DateTime now = DateTime.now();
+          // ignore: unused_element
+          final formattedDate = DateFormat('dd/MM/yyyy').format(now);
+
+          DateTime now3 = DateTime.now();
+          String formattedDate3 = DateFormat('HH:mm:ss').format(now3);
+
+          int generateRandomNumber() {
+            Random random = Random();
+            int min = 100000000; // Smallest 9-digit number
+            int max = 999999999; // Largest 9-digit number
+            return min + random.nextInt(max - min);
+          }
+
+          int randomNum = generateRandomNumber();
+          print(randomNum);
+
+          showGeneralDialog(
+            context: context,
+            barrierDismissible: true,
+            barrierLabel: '',
+            transitionDuration: Duration(milliseconds: 250),
+            pageBuilder: (context, animation1, animation2) {
+              return Container();
+            },
+            transitionBuilder: (context, a1, a2, widget) {
+              double screenWidth = MediaQuery.of(context).size.width;
+
+              return ScaleTransition(
+                scale: Tween<double>(begin: 0.5, end: 1.0).animate(a1),
+                child: FadeTransition(
+                  opacity: Tween<double>(begin: 0.5, end: 1.0).animate(a1),
+                  child: AlertDialog(
+                    backgroundColor: Color(hexColor('#003459')),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    title: Center(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text(
+                              "We will send you an email once your rfid request is approve.",
+                              style: GoogleFonts.raleway(
+                                fontSize: 15, // Adjusted font size
+                                color: Color(0xFFE2C946),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            "Do you want to continue?",
+                            style: GoogleFonts.raleway(
+                              fontSize: 17, // Adjusted font size
+                              color: Color(0xFFE4F4FF),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(width: 3), // Adjusted padding
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text(
+                                  "Cancel",
+                                  style: GoogleFonts.raleway(
+                                    fontSize: 15, // Adjusted font size
+                                    color: Color(0xFFE2C946),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    if (balance < 150) {
+                                      showSnackBar(context,
+                                          "sorry, you dont have enough balance, rfid card price is 150.00 php.");
+                                    } else {
+                                      final User? DRrequestToAdmin =
+                                          FirebaseAuth.instance.currentUser;
+                                      if (DRrequestToAdmin != null) {
+                                        driverToAdminref = FirebaseDatabase
+                                            .instance
+                                            .ref()
+                                            .child('DRIVER')
+                                            .child(DRrequestToAdmin.uid)
+                                            .child('RFID_REQUEST');
+
+                                        Map<dynamic, dynamic>
+                                            pushToAdminrfidrequest = {
+                                          'request_date':
+                                              formattedDate.toString(),
+                                          'type': 'rfid-request',
+                                          'ref_number': randomNum,
+                                          'Account_Email': email,
+                                          'Account_Fname': fname,
+                                          'Account_Mname': mname,
+                                          'Account_Lname': lname,
+                                          'Account_ID': DRrequestToAdmin.uid,
+                                          'Amount': 150,
+                                          'Reference_Number': randomNum,
+                                          'Release_Date': '',
+                                          'Request_Date': formattedDate,
+                                          'Release_Status': 'PENDING',
+                                          'Request_Time': formattedDate3
+                                        };
+                                        driverToAdminref
+                                            ?.push()
+                                            .set(pushToAdminrfidrequest);
+                                      }
+                                      showSnackBar(context,
+                                          "your request send succesfully.");
+                                      Navigator.of(context).pop();
+                                    }
+                                  });
+                                },
+                                child: Text(
+                                  "Yes",
+                                  style: GoogleFonts.raleway(
+                                    fontSize: 15, // Adjusted font size
+                                    color: Color(0xFFE2C946),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -492,11 +693,15 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                         onTap: () {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => accountSetting(),
+                          //   ),
+                          // );
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => accountSetting(),
-                            ),
+                            goingTopPageRoute(nextPage: accountSetting()),
                           );
                           print("ma edit sha");
                         },
@@ -521,8 +726,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const AddVehicle()),
+                                  goingTopPageRoute(nextPage: AddVehicle()),
                                 );
                               },
                             ),
@@ -619,14 +823,24 @@ class _ProfilePageState extends State<ProfilePage> {
                                               onTap: () {
                                                 Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        VehicleInfo(
+                                                  goingTopPageRoute(
+                                                    nextPage: VehicleInfo(
                                                       vehicleKey:
                                                           vehicles[index].key,
                                                     ),
                                                   ),
                                                 );
+
+                                                // Navigator.push(
+                                                //   context,
+                                                //   MaterialPageRoute(
+                                                //     builder: (context) =>
+                                                //         VehicleInfo(
+                                                //       vehicleKey:
+                                                //           vehicles[index].key,
+                                                //     ),
+                                                //   ),
+                                                // );
                                               },
                                             ),
                                           ),
@@ -648,71 +862,72 @@ class _ProfilePageState extends State<ProfilePage> {
                                 })),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(15, 15, 0, 5),
+                        padding: const EdgeInsets.fromLTRB(15, 15, 25, 5),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'OPPORTUNITIES',
-                              style: GoogleFonts.raleway(
-                                fontSize: 17,
-                                color: Color(0xFFE4F4FF),
-                                fontWeight: FontWeight.bold,
+                            GestureDetector(
+                              child: Text(
+                                'RFID REQUEST?',
+                                style: GoogleFonts.raleway(
+                                  fontSize: 17,
+                                  color: Color(0xFFE4F4FF),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
+                              onTap: () {
+                                RFIDrequest(context);
+                              },
                             ),
                           ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(2, 15, 2, 5),
+                      Container(
+                        height: 40,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          color: Color(hexColor('#003459')), // Background color
+                          borderRadius: BorderRadius.circular(
+                              10), // Optional: Add rounded corners
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black,
+                              offset: Offset(0, 3),
+                              blurRadius: 1,
+                              spreadRadius: 0, // Shadow expands
+                            ),
+                          ],
+                        ),
                         child: Container(
-                          height: 50,
+                          height: 40,
                           width: MediaQuery.of(context).size.width,
                           decoration: BoxDecoration(
-                            color:
-                                Color(hexColor('#003459')), // Background color
-                            borderRadius: BorderRadius.circular(
-                                10), // Optional: Add rounded corners
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black,
-                                offset: Offset(0, 3),
-                                blurRadius: 1,
-                                spreadRadius: 0, // Shadow expands
+                            border: Border.all(
+                              color: const Color(0xFFE2C946),
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  children: [
+                                    InkWell(
+                                      child: Text(
+                                        'Did you lost your rfid card?',
+                                        style: GoogleFonts.raleway(
+                                          fontSize: 15,
+                                          color: Color(0xFFE2C946),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      onTap: () {},
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
-                          ),
-                          child: Container(
-                            height: 40,
-                            width: MediaQuery.of(context).size.width,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: const Color(0xFFE2C946),
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.fromLTRB(20, 15, 0, 0),
-                                  child: Row(
-                                    children: [
-                                      InkWell(
-                                        child: Text(
-                                          'Have a parking lot?',
-                                          style: GoogleFonts.raleway(
-                                            fontSize: 15,
-                                            color: Color(0xFFE2C946),
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        onTap: () {},
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                         ),
                       ),
@@ -749,7 +964,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             fixedSize: const Size(150, 34),
                             backgroundColor: Color(hexColor('#003459')),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(15.0),
                             ),
                             shadowColor: Colors.white, // Color of the shadow
                           ),

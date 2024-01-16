@@ -154,6 +154,8 @@ class _PaymentPageState extends State<PaymentPage> {
             DateTime now2 = DateTime.now();
             String formattedDate2 = DateFormat('dd/MM/yyyy').format(now2);
 
+            String formattedTime = DateFormat('HH:mm:ss').format(now2);
+
             int generateRandomNumber() {
               Random random = Random();
               int min = 100000000; // Smallest 9-digit number
@@ -176,6 +178,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
               Map<dynamic, dynamic> pushPaymentHistory = {
                 'date': formattedDate.toString(),
+                'time': formattedTime.toString(),
                 'transaction_details': 'Cash-in',
                 'amount': amountCashIn,
                 'MOP': 'through PayPal',
@@ -194,6 +197,7 @@ class _PaymentPageState extends State<PaymentPage> {
               Map<dynamic, dynamic> pushToAdmin = {
                 'amount': amountCashIn,
                 'date': formattedDate2.toString(),
+                'time': formattedTime.toString(),
                 'fullname': '${lname}, ${fname} ${mname}',
                 'ref_number': randomNum,
                 'UID': DRpaymentToAdmin.uid

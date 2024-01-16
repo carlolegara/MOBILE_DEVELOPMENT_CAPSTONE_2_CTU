@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:parkbai/createpage.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+//import 'package:fluttertoast/fluttertoast.dart';
 import 'package:parkbai/main.dart';
-//import 'package:parkbai/forgotpassword.dart';
+import 'package:parkbai/forgotpassword.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({
@@ -12,6 +12,31 @@ class LoginPage extends StatefulWidget {
 
   @override
   State<LoginPage> createState() => _MyHomePageState();
+}
+
+class goingTopPageRoute extends PageRouteBuilder {
+  final Widget nextPage;
+
+  goingTopPageRoute({required this.nextPage})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) => nextPage,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0); // Slide from bottom
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+
+            var offsetAnimation = animation.drive(tween);
+
+            return SlideTransition(
+              position: offsetAnimation,
+              child: child,
+            );
+          },
+        );
 }
 
 final username = TextEditingController();
@@ -39,53 +64,79 @@ void userSignin(BuildContext context) async {
     );
     Navigator.pop(context); // Close the dialog
     // Redirect to the main page
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => MainPage()),
+      goingLeftPageRoute(nextPage: MainPage()),
     );
   } on FirebaseAuthException catch (e) {
     Navigator.pop(context); // Close the dialog
 
     if (e.code == 'user-not-found') {
-      IncorrectEmail();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Incorrect Email."),
+          duration: Duration(seconds: 3),
+          backgroundColor: Color(hexColor('#003459')),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8.0),
+              topRight: Radius.circular(8.0),
+            ),
+          ),
+        ),
+      );
     } else if (e.code == 'wrong-password') {
-      IncorrectPassword();
+      IncorrectPassword(context);
     }
   }
 }
 
 //REDIRECT TO CREATE ACCOUNT PAGE
-// ignore: non_constant_identifier_names
 void RedirectCreateAccount(BuildContext context) {
-  Navigator.pushReplacement(
-      context, MaterialPageRoute(builder: (_) => const CreateAccount()));
-}
-
-//ERROR MESSAGE OF INCORRECT EMAIL
-// ignore: non_constant_identifier_names
-void IncorrectEmail() {
-  Fluttertoast.showToast(
-    msg: "Incorrect Email.",
-    toastLength: Toast.LENGTH_SHORT,
-    gravity: ToastGravity.BOTTOM,
-    timeInSecForIosWeb: 5,
-    backgroundColor: Color(hexColor('#003459')),
-    textColor: Colors.white,
-    fontSize: 16.0,
+  Navigator.push(
+    context,
+    goingTopPageRoute(nextPage: CreateAccount()),
   );
 }
 
+//ERROR MESSAGE OF INCORRECT EMAIL
+
+void IncorrectEmail(BuildContext context) {}
+
 //ERROR MESSAGE OF INCORRECT PASSWORD
-// ignore: non_constant_identifier_names
-void IncorrectPassword() {
-  Fluttertoast.showToast(
-    msg: "Incorrect Password.",
-    toastLength: Toast.LENGTH_SHORT,
-    gravity: ToastGravity.BOTTOM,
-    timeInSecForIosWeb: 5,
-    backgroundColor: Color(hexColor('#003459')),
-    textColor: Colors.white,
-    fontSize: 16.0,
+void IncorrectPassword(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(8.0),
+            topRight: Radius.circular(8.0),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Incorrect Password.",
+              style: TextStyle(color: Color(0xFF003459)),
+            ),
+            SizedBox(height: 20.0),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              style: ElevatedButton.styleFrom(
+                // ignore: deprecated_member_use
+                primary: Color(0xFF003459),
+              ),
+              child: Text('OK', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    },
   );
 }
 
@@ -162,13 +213,12 @@ class _MyHomePageState extends State<LoginPage> {
                                   setState(() {
                                     if (value.contains(' ')) {
                                       errortextuser =
-                                          "invalid input blank space detected.";
+                                          "Invalid input: Blank space detected.";
                                     } else if (value.isEmpty) {
                                       errortextuser = "Email is required.";
-                                      // ignore: unrelated_type_equality_checks
-                                    } else if (RegExp(
-                                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$') !=
-                                        (value)) {
+                                    } else if (!RegExp(
+                                            r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,}$')
+                                        .hasMatch(value)) {
                                       errortextuser =
                                           "Incorrect email detected";
                                     } else if (value.isNotEmpty) {
@@ -269,11 +319,11 @@ class _MyHomePageState extends State<LoginPage> {
                                   ),
                                 ),
                                 onTap: () {
-                                  //Navigator.push(
-                                  //context,
-                                  //MaterialPageRoute(
-                                  //builder: (context) => ForgetPassword()),
-                                  //);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ForgetPassword()),
+                                  );
                                 },
                               ),
                             ),

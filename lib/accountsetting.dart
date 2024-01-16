@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:path/path.dart';
 
 class accountSetting extends StatefulWidget {
   const accountSetting({super.key});
@@ -91,15 +92,42 @@ class _accountSettingState extends State<accountSetting> {
       source: ImageSource.gallery,
     );
 
+    if (image == null) {
+      // User canceled image picker
+      return;
+    }
+    List<String> allowedExtensions = ['jpg', 'jpeg', 'png'];
+
+    // Extract the file extension from the original file name
+    String fileExtension = image.path.split('.').last;
+
+    if (!allowedExtensions.contains(fileExtension)) {
+      // Display an error message or handle the case where the selected file has an invalid extension
+      print('Invalid file extension. Please select a valid image file.');
+      return;
+    }
+
     String imageName = DateTime.now().millisecondsSinceEpoch.toString();
+    // Append the file extension to the new file name
+    String fileType = 'image';
 
-    Reference ref =
-        FirebaseStorage.instance.ref().child("DRIVER").child(imageName);
+    Reference ref = FirebaseStorage.instance
+        .ref()
+        .child("DRIVER")
+        .child('$imageName.$fileExtension');
 
-    await ref.putFile(File(image!.path));
+    SettableMetadata metadata = SettableMetadata(
+      contentType:
+          'image/$fileExtension', // Set the content type based on the file extension
+      customMetadata: {
+        'fileType': fileType,
+        'extension': fileExtension,
+      }, // You can add more metadata as needed
+    );
+
+    await ref.putFile(File(image.path), metadata);
 
     await ref.getDownloadURL().then((value) {
-      //print(value);
       setState(() {
         reUploadimageUrl = value;
       });
@@ -107,19 +135,48 @@ class _accountSettingState extends State<accountSetting> {
   }
 
   void reUploadImageforDL() async {
-    final imageDL = await ImagePicker().pickImage(
+    final image = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
 
+    if (image == null) {
+      // User canceled image picker
+      return;
+    }
+
+    List<String> allowedExtensions = ['jpg', 'jpeg', 'png'];
+
+    // Extract the file extension from the original file name
+    String fileExtension = image.path.split('.').last;
+
+    if (!allowedExtensions.contains(fileExtension)) {
+      // Display an error message or handle the case where the selected file has an invalid extension
+      print('Invalid file extension. Please select a valid image file.');
+      return;
+    }
+
     String imageName = DateTime.now().millisecondsSinceEpoch.toString();
+    // Append the file extension to the new file name
+    String fileType = 'image';
 
-    Reference ref =
-        FirebaseStorage.instance.ref().child("DRIVER").child(imageName);
+    Reference ref = FirebaseStorage.instance
+        .ref()
+        .child("DRIVER")
+        .child("DRIVER_LICENSE")
+        .child('$imageName.$fileExtension');
 
-    await ref.putFile(File(imageDL!.path));
+    SettableMetadata metadata = SettableMetadata(
+      contentType:
+          'image/$fileExtension', // Set the content type based on the file extension
+      customMetadata: {
+        'fileType': fileType,
+        'extension': fileExtension,
+      }, // You can add more metadata as needed
+    );
+
+    await ref.putFile(File(image.path), metadata);
 
     await ref.getDownloadURL().then((value) {
-      //print(value);
       setState(() {
         reUploadimageDLUrl = value;
       });
@@ -393,8 +450,7 @@ class _accountSettingState extends State<accountSetting> {
                                             autofocus: true,
                                             maxLength: 11,
                                             keyboardType: TextInputType.number,
-                                            inputFormatters: <
-                                                TextInputFormatter>[
+                                            inputFormatters: <TextInputFormatter>[
                                               FilteringTextInputFormatter
                                                   .digitsOnly
                                             ],
@@ -812,9 +868,8 @@ class _accountSettingState extends State<accountSetting> {
                                         print('link sa DL=');
                                         print(reUploadimageDLUrl);
                                         reUploadImagesLink();
-                                         Fluttertoast.showToast(
-                                          msg:
-                                              "Account update successfully",
+                                        Fluttertoast.showToast(
+                                          msg: "Account update successfully",
                                           toastLength: Toast.LENGTH_SHORT,
                                           gravity: ToastGravity.BOTTOM,
                                           timeInSecForIosWeb: 5,
@@ -825,7 +880,7 @@ class _accountSettingState extends State<accountSetting> {
                                         );
                                         Navigator.of(context).pop();
                                         print("success update");
-                                      }                                   
+                                      }
                                       await changePassword(
                                           currentEmail: email,
                                           oldPassword: oldPasswordtext.text,

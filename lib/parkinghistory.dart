@@ -395,6 +395,16 @@ class _ParkingHistoryState extends State<ParkingHistory> {
                                           ),
                                         ),
                                       );
+
+                                      // Navigator.push(
+                                      //   context,
+                                      //   MaterialPageRoute(
+                                      //     builder: (context) =>
+                                      //         ParkingHistoryInfo(
+                                      //       ParkingHistoryKey: items[index].key,
+                                      //     ),
+                                      //   ),
+                                      // );
                                     },
                                   ),
                                 ),

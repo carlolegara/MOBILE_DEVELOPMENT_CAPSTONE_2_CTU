@@ -83,9 +83,10 @@ class ParkingLot {
   final double latitude;
   final double longitude;
   final String parkingLot_layout;
+  final int vacantCount;
 
   ParkingLot(this.key, this.address, this.company, this.genAverage,
-      this.latitude, this.longitude, this.parkingLot_layout);
+      this.latitude, this.longitude, this.parkingLot_layout, this.vacantCount);
 }
 
 //HEXCOLOR FOR COLORPALLETE
@@ -316,6 +317,8 @@ class _HomePageState extends State<HomePage> {
                                           "Current value of the query input: $searchForPark");
                                       List<ParkingLot> lot = [];
 
+                                      Set<String> uniqueCompanies = Set();
+
                                       values.forEach((key, value) async {
                                         if (value['ACCOUNT'] != null &&
                                             value['ACCOUNT']['Application'] !=
@@ -326,11 +329,12 @@ class _HomePageState extends State<HomePage> {
                                           // Check if the application status is 'ACCEPTED' or 'PENDING'
                                           if (applicationStatus == 'ACCEPTED') {
                                             if (value['PARKING_LOT'] != null) {
-                                              //  final parkingLotOwnerID =
-                                              //     value[key] ?? '';
-
                                               final parkingLotData =
                                                   value['PARKING_LOT'];
+
+                                              final parkingAreaData =
+                                                  value['PARKING_AREA'];
+
                                               final address =
                                                   parkingLotData['Address'] ??
                                                       '';
@@ -351,19 +355,41 @@ class _HomePageState extends State<HomePage> {
                                                           'Profile_Picture'] ??
                                                       '';
 
-                                              double genAverage =
-                                                  double.tryParse(
-                                                          genAverageString) ??
-                                                      0.0;
+                                              // Initialize vacantCount outside the loop
+                                              int vacantCount = 0;
 
+                                              // Iterate through parking area keys (like 'A01', 'A02', etc.)
+                                              parkingAreaData.forEach(
+                                                  (areaKey, areaValue) {
+                                                String parkingSpaceStatus =
+                                                    areaValue[
+                                                            'parking_space'] ??
+                                                        '';
+
+                                                // Calculate vacantCount based on parking_space status
+                                                if (parkingSpaceStatus ==
+                                                    'VACANT') {
+                                                  vacantCount++;
+                                                }
+                                              });
+
+                                              // Now vacantCount should have the correct value
+                                              print(
+                                                  'Svacant Count for $key: $vacantCount');
+
+                                              // Add ParkingLot once per outer iteration
                                               lot.add(ParkingLot(
-                                                  key,
-                                                  address,
-                                                  company,
-                                                  genAverage,
-                                                  latitude,
-                                                  longitude,
-                                                  parkingLot_layout));
+                                                key,
+                                                address,
+                                                company,
+                                                double.tryParse(
+                                                        genAverageString) ??
+                                                    0.0,
+                                                latitude,
+                                                longitude,
+                                                parkingLot_layout,
+                                                vacantCount,
+                                              ));
                                             }
                                           }
                                         }
@@ -388,10 +414,11 @@ class _HomePageState extends State<HomePage> {
                                       });
 
                                       if (query.isEmpty) {
-                                        // If the query is empty, display the original list
                                         return ListView.builder(
                                           itemCount: lot.length,
                                           itemBuilder: (context, index) {
+                                            final currentLot = lot[index];
+
                                             return Padding(
                                               padding:
                                                   const EdgeInsets.fromLTRB(
@@ -413,7 +440,7 @@ class _HomePageState extends State<HomePage> {
                                                 ),
                                                 child: ListTile(
                                                   title: Text(
-                                                    'COMPANY: ${lot[index].company}',
+                                                    'COMPANY: ${currentLot.company}',
                                                     style: GoogleFonts.raleway(
                                                       fontSize: 20,
                                                       color: Colors.black,
@@ -427,7 +454,7 @@ class _HomePageState extends State<HomePage> {
                                                             .start,
                                                     children: [
                                                       Text(
-                                                        'ADDRESS: ${lot[index].address}',
+                                                        'ADDRESS: ${currentLot.address}',
                                                         style:
                                                             GoogleFonts.raleway(
                                                           fontSize: 15,
@@ -443,13 +470,13 @@ class _HomePageState extends State<HomePage> {
                                                         children: [
                                                           // Display GenAverage value as star symbols
                                                           StarRating(
-                                                              averageRating: lot[
-                                                                      index]
-                                                                  .genAverage),
+                                                              averageRating:
+                                                                  currentLot
+                                                                      .genAverage),
                                                           SizedBox(width: 4),
                                                           // Display numeric rating value
                                                           Text(
-                                                            lot[index]
+                                                            currentLot
                                                                 .genAverage
                                                                 .toString(),
                                                             style: GoogleFonts
@@ -474,10 +501,10 @@ class _HomePageState extends State<HomePage> {
                                                                       (context) =>
                                                                           MapGuide(
                                                                     lotlatitude:
-                                                                        lot[index]
+                                                                        currentLot
                                                                             .latitude,
                                                                     lotlongitude:
-                                                                        lot[index]
+                                                                        currentLot
                                                                             .longitude,
                                                                   ),
                                                                 ),
@@ -491,6 +518,19 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                         ],
                                                       ),
+                                                      SizedBox(height: 4),
+                                                      // Display vacantCount
+                                                      Text(
+                                                        'Vacant Count: ${currentLot.vacantCount}',
+                                                        style:
+                                                            GoogleFonts.raleway(
+                                                          fontSize: 15,
+                                                          color: const Color(
+                                                              0xFF003459),
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
                                                     ],
                                                   ),
                                                   onTap: () {
@@ -500,9 +540,8 @@ class _HomePageState extends State<HomePage> {
                                                         builder: (context) =>
                                                             ParkingSlot(
                                                           parkingKey:
-                                                              lot[index].key,
-                                                          parkingLayout: lot[
-                                                                  index]
+                                                              currentLot.key,
+                                                          parkingLayout: currentLot
                                                               .parkingLot_layout,
                                                         ),
                                                       ),
@@ -520,8 +559,14 @@ class _HomePageState extends State<HomePage> {
                                                 .contains(query.toLowerCase()))
                                             .toList();
                                         return ListView.builder(
-                                          itemCount: filteredLot.length,
+                                          itemCount: query.isEmpty
+                                              ? lot.length
+                                              : filteredLot.length,
                                           itemBuilder: (context, index) {
+                                            final currentLot = query.isEmpty
+                                                ? lot[index]
+                                                : filteredLot[index];
+
                                             return Padding(
                                               padding:
                                                   const EdgeInsets.fromLTRB(
@@ -543,7 +588,7 @@ class _HomePageState extends State<HomePage> {
                                                 ),
                                                 child: ListTile(
                                                   title: Text(
-                                                    'COMPANY: ${lot[index].company}',
+                                                    'COMPANY: ${currentLot.company}',
                                                     style: GoogleFonts.raleway(
                                                       fontSize: 20,
                                                       color: Colors.black,
@@ -557,7 +602,7 @@ class _HomePageState extends State<HomePage> {
                                                             .start,
                                                     children: [
                                                       Text(
-                                                        'ADDRESS: ${lot[index].address}',
+                                                        'ADDRESS: ${currentLot.address}',
                                                         style:
                                                             GoogleFonts.raleway(
                                                           fontSize: 15,
@@ -573,13 +618,13 @@ class _HomePageState extends State<HomePage> {
                                                         children: [
                                                           // Display GenAverage value as star symbols
                                                           StarRating(
-                                                              averageRating: lot[
-                                                                      index]
-                                                                  .genAverage),
+                                                              averageRating:
+                                                                  currentLot
+                                                                      .genAverage),
                                                           SizedBox(width: 4),
                                                           // Display numeric rating value
                                                           Text(
-                                                            lot[index]
+                                                            currentLot
                                                                 .genAverage
                                                                 .toString(),
                                                             style: GoogleFonts
@@ -604,10 +649,10 @@ class _HomePageState extends State<HomePage> {
                                                                       (context) =>
                                                                           MapGuide(
                                                                     lotlatitude:
-                                                                        lot[index]
+                                                                        currentLot
                                                                             .latitude,
                                                                     lotlongitude:
-                                                                        lot[index]
+                                                                        currentLot
                                                                             .longitude,
                                                                   ),
                                                                 ),
@@ -621,6 +666,19 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                         ],
                                                       ),
+                                                      SizedBox(height: 4),
+                                                      // Display vacantCount
+                                                      Text(
+                                                        'Vacant Count: ${currentLot.vacantCount}',
+                                                        style:
+                                                            GoogleFonts.raleway(
+                                                          fontSize: 15,
+                                                          color: const Color(
+                                                              0xFF003459),
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
                                                     ],
                                                   ),
                                                   onTap: () {
@@ -630,10 +688,9 @@ class _HomePageState extends State<HomePage> {
                                                         builder: (context) =>
                                                             ParkingSlot(
                                                           parkingKey:
-                                                              lot[index].key,
-                                                          parkingLayout: lot[
-                                                                  index]
-                                                              .parkingLot_layout, // Replace with your actual longitude property
+                                                              currentLot.key,
+                                                          parkingLayout: currentLot
+                                                              .parkingLot_layout,
                                                         ),
                                                       ),
                                                     );
